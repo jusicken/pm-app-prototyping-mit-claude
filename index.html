@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Framework Dokumentations-Viewer</title>
+
+<!-- marked.js for Markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<!-- highlight.js for code syntax highlighting -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css" id="hljs-theme">
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/highlight.min.js"></script>
+<!-- html2pdf for PDF export -->
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
+<style>
+  /* ── DESIGN TOKENS ───────────────────────────────── */
+  :root {
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', monospace;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --transition: 0.2s ease;
+    --nav-h: 58px;
+    --sidebar-w: 260px;
+  }
+
+  [data-theme="dark"] {
+    --bg:          #111318;
+    --bg-2:        #1a1d25;
+    --bg-3:        #222632;
+    --border:      #2d3244;
+    --text:        #e2e5f0;
+    --text-2:      #9aa0b8;
+    --text-3:      #5e657f;
+    --accent:      #6c8ef7;
+    --accent-soft: rgba(108,142,247,0.12);
+    --accent-glow: rgba(108,142,247,0.25);
+    --success:     #4ade80;
+    --tag-bg:      #252b3b;
+    --code-bg:     #161b27;
+    --shadow:      0 4px 24px rgba(0,0,0,0.4);
+    --progress-bg: #2d3244;
+  }
+
+  [data-theme="light"] {
+    --bg:          #f8f9fc;
+    --bg-2:        #ffffff;
+    --bg-3:        #f0f2f8;
+    --border:      #e2e6f0;
+    --text:        #1a1d2e;
+    --text-2:      #4a5070;
+    --text-3:      #9aa0b8;
+    --accent:      #4f6ef7;
+    --accent-soft: rgba(79,110,247,0.08);
+    --accent-glow: rgba(79,110,247,0.18);
+    --success:     #16a34a;
+    --tag-bg:      #eef0f8;
+    --code-bg:     #f4f6fb;
+    --shadow:      0 4px 24px rgba(0,0,0,0.08);
+    --progress-bg: #e2e6f0;
+  }
+
+  /* ── RESET ───────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 24px); }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background var(--transition), color var(--transition);
+    overflow-x: hidden;
+  }
+
+  /* ── TOP NAV ─────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--nav-h);
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 24px; gap: 8px;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-size: 15px; font-weight: 700;
+    color: var(--text);
+    margin-right: 16px;
+    letter-spacing: -0.3px;
+  }
+
+  .nav-tabs {
+    display: flex; gap: 4px; flex: 1;
+  }
+
+  .nav-tab {
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 13.5px; font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .nav-tab:hover { background: var(--bg-3); color: var(--text); }
+  .nav-tab.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .nav-actions {
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .nav-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text-2);
+    font-size: 12.5px; font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .nav-btn svg { flex-shrink: 0; }
+
+  /* Search bar in nav */
+  .nav-search-wrap {
+    position: relative;
+    display: flex; align-items: center;
+  }
+  .nav-search {
+    padding: 6px 12px 6px 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text);
+    font-size: 13px;
+    width: 200px;
+    outline: none;
+    transition: all var(--transition);
+  }
+  .nav-search:focus { border-color: var(--accent); width: 260px; }
+  .nav-search::placeholder { color: var(--text-3); }
+  .search-icon {
+    position: absolute; left: 9px;
+    color: var(--text-3); pointer-events: none;
+  }
+  .search-nav-btns {
+    display: flex; gap: 2px; margin-left: 4px;
+  }
+  .search-nav-btn {
+    padding: 5px 7px;
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text-2);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all var(--transition);
+    display: none;
+  }
+  .search-nav-btn.visible { display: flex; align-items: center; }
+  .search-nav-btn:hover { background: var(--accent-soft); color: var(--accent); }
+  .search-count {
+    font-size: 11px; color: var(--text-3);
+    padding: 0 6px;
+    display: none;
+  }
+  .search-count.visible { display: block; }
+
+  /* ── PROGRESS BAR ────────────────────────────────── */
+  .progress-bar-wrap {
+    position: fixed; top: var(--nav-h); left: 0; right: 0;
+    height: 3px; background: var(--progress-bg);
+    z-index: 99;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #a78bfa);
+    width: 0%;
+    transition: width 0.1s linear;
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* ── LAYOUT ──────────────────────────────────────── */
+  .layout {
+    display: flex;
+    padding-top: calc(var(--nav-h) + 3px);
+    min-height: 100vh;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────────── */
+  .sidebar {
+    position: fixed;
+    top: calc(var(--nav-h) + 3px);
+    right: 0;
+    width: var(--sidebar-w);
+    height: calc(100vh - var(--nav-h) - 3px);
+    overflow-y: auto;
+    padding: 24px 16px;
+    border-left: 1px solid var(--border);
+    background: var(--bg-2);
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-title {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: 12px; padding-left: 8px;
+  }
+
+  .toc-list { list-style: none; }
+  .toc-item {
+    display: block;
+    padding: 4px 8px;
+    border-radius: 5px;
+    color: var(--text-2);
+    font-size: 12.5px;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: all var(--transition);
+    border-left: 2px solid transparent;
+    margin-bottom: 1px;
+    text-decoration: none;
+  }
+  .toc-item:hover { color: var(--text); background: var(--bg-3); }
+  .toc-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .toc-item[data-level="1"] { font-weight: 600; }
+  .toc-item[data-level="2"] { padding-left: 16px; }
+  .toc-item[data-level="3"] { padding-left: 24px; font-size: 12px; }
+  .toc-item[data-level="4"] { padding-left: 32px; font-size: 11.5px; }
+
+  /* ── MAIN CONTENT ────────────────────────────────── */
+  .main {
+    flex: 1;
+    margin-right: var(--sidebar-w);
+    padding: 48px 60px;
+    max-width: calc(100% - var(--sidebar-w));
+  }
+
+  /* ── MARKDOWN STYLES ─────────────────────────────── */
+  .md-content {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  .md-content h1, .md-content h2, .md-content h3,
+  .md-content h4, .md-content h5, .md-content h6 {
+    color: var(--text);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
+  }
+  .md-content h1 { font-size: 2rem; margin: 0 0 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border); }
+  .md-content h2 {
+    font-size: 1.45rem; margin: 48px 0 16px;
+    padding-top: 8px;
+  }
+  .md-content h3 { font-size: 1.15rem; margin: 32px 0 12px; }
+  .md-content h4 { font-size: 1rem; margin: 24px 0 8px; color: var(--text-2); }
+
+  .md-content p { line-height: 1.8; margin-bottom: 16px; color: var(--text); font-size: 15px; }
+  .md-content ul, .md-content ol { padding-left: 24px; margin-bottom: 16px; }
+  .md-content li { line-height: 1.8; margin-bottom: 4px; font-size: 15px; }
+  .md-content li::marker { color: var(--accent); }
+
+  .md-content a { color: var(--accent); text-decoration: none; }
+  .md-content a:hover { text-decoration: underline; }
+
+  .md-content blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 12px 20px;
+    margin: 20px 0;
+    background: var(--accent-soft);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    color: var(--text-2);
+    font-style: italic;
+  }
+
+  .md-content hr {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    margin: 40px 0;
+  }
+
+  .md-content table {
+    width: 100%; border-collapse: collapse; margin: 20px 0;
+    font-size: 14px;
+    border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .md-content th {
+    background: var(--bg-3);
+    padding: 10px 14px;
+    text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--border);
+    color: var(--text);
+  }
+  .md-content td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-2);
+  }
+  .md-content tr:last-child td { border-bottom: none; }
+  .md-content tr:hover td { background: var(--bg-3); }
+
+  .md-content img {
+    max-width: 100%;
+    border-radius: var(--radius-lg);
+    margin: 20px 0;
+    border: 1px solid var(--border);
+    display: block;
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────── */
+  .md-content p code, .md-content li code {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: var(--tag-bg);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .code-block-wrap {
+    position: relative;
+    margin: 20px 0;
+  }
+  .code-block-wrap pre {
+    background: var(--code-bg) !important;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow-x: auto;
+    margin: 0 !important;
+  }
+  .code-block-wrap pre code {
+    font-family: var(--font-mono) !important;
+    font-size: 13.5px !important;
+    padding: 20px 24px !important;
+    display: block;
+  }
+  .copy-btn {
+    position: absolute; top: 10px; right: 10px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text-2);
+    font-size: 11px; font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+    opacity: 0;
+    transition: all var(--transition);
+  }
+  .code-block-wrap:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--success); border-color: var(--success); background: rgba(74,222,128,0.1); }
+
+  /* ── SEARCH HIGHLIGHTS ───────────────────────────── */
+  mark.search-hl {
+    background: rgba(255,220,0,0.35);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  mark.search-hl.current {
+    background: rgba(255,165,0,0.6);
+    outline: 2px solid orange;
+    border-radius: 2px;
+  }
+
+  /* ── THEME TOGGLE ────────────────────────────────── */
+  .theme-toggle {
+    width: 34px; height: 34px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text-2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition);
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  /* ── LOADING STATE ───────────────────────────────── */
+  .loading {
+    display: flex; align-items: center; justify-content: center;
+    height: 200px; color: var(--text-3); font-size: 14px; gap: 10px;
+  }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── SCROLLBAR ───────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── PDF BREAK MARKER (invisible in browser) ────── */
+  .pdf-break { display: none !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
+
+  /* ── PRINT / PDF ─────────────────────────────────── */
+  @media print {
+    nav, .sidebar, .progress-bar-wrap { display: none !important; }
+    .main { margin: 0 !important; padding: 20px !important; max-width: 100% !important; }
+    .copy-btn { display: none !important; }
+    body { background: white !important; color: black !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAVIGATION -->
+<nav>
+  <span class="nav-brand">&#9654; Docs</span>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-doc="Leitfaden_PM.md" onclick="switchDoc('Leitfaden_PM.md', this)">Leitfaden</button>
+    <button class="nav-tab" data-doc="einrichtungsanleitung.md" onclick="switchDoc('einrichtungsanleitung.md', this)">Einrichtungsanleitung</button>
+  </div>
+
+  <!-- Search -->
+  <div class="nav-search-wrap">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="nav-search" type="text" placeholder="Suchen…" id="searchInput" oninput="onSearch(this.value)" onkeydown="searchKeydown(event)">
+  </div>
+  <span class="search-count" id="searchCount"></span>
+  <div class="search-nav-btns">
+    <button class="search-nav-btn" id="searchPrev" onclick="navigateSearch(-1)">&#8593;</button>
+    <button class="search-nav-btn" id="searchNext" onclick="navigateSearch(1)">&#8595;</button>
+  </div>
+
+  <div class="nav-actions">
+    <button class="nav-btn" onclick="exportPDF()" title="Als PDF exportieren (Screenshot-Methode)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      PDF
+    </button>
+    <button class="nav-btn" onclick="exportPDFPrint()" title="Als PDF exportieren (Druck-Methode, bessere Seitenumbrüche)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      PDF v2
+    </button>
+    <button class="nav-btn" onclick="downloadFramework()" title="FRAMEWORK.md herunterladen">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      FRAMEWORK.md
+    </button>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Theme wechseln" id="themeBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIcon"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar-wrap">
+  <div class="progress-bar" id="progressBar"></div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <main class="main">
+    <div class="md-content" id="mdContent">
+      <div class="loading"><div class="spinner"></div> Dokument wird geladen…</div>
+    </div>
+  </main>
+
+  <aside class="sidebar">
+    <div class="sidebar-title">Inhalt</div>
+    <div id="tocList"></div>
+  </aside>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────
+let currentDoc = 'Leitfaden_PM.md';
+let headings = [];
+let searchMatches = [];
+let searchIndex = -1;
+let rawMarkdownCache = {};
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Restore theme
+  const saved = localStorage.getItem('docs-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcon(saved);
+  updateHljsTheme(saved);
+
+  loadDoc('Leitfaden_PM.md');
+  window.addEventListener('scroll', onScroll);
+});
+
+// ── DOCUMENT LOADING ──────────────────────────────────────────────────────
+async function loadDoc(filename) {
+  currentDoc = filename;
+  clearSearch();
+
+  const el = document.getElementById('mdContent');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> Dokument wird geladen…</div>';
+  document.getElementById('tocList').innerHTML = '';
+
+  try {
+    const resp = await fetch(filename + '?nocache=' + Date.now());
+    if (!resp.ok) throw new Error('Datei nicht gefunden');
+    const md = await resp.text();
+    rawMarkdownCache[filename] = md;
+    renderMarkdown(md);
+  } catch (e) {
+    el.innerHTML = `<div class="loading" style="color:var(--text-2)">
+      ⚠️ "${filename}" konnte nicht geladen werden.<br>
+      <small style="color:var(--text-3);margin-top:8px;display:block">Bitte starte einen lokalen Webserver im App-Ordner.</small>
+    </div>`;
+  }
+}
+
+function renderMarkdown(md) {
+  // Configure marked
+  marked.setOptions({ breaks: true, gfm: true });
+
+  const renderer = new marked.Renderer();
+
+  // Code blocks with copy button
+  renderer.code = function(code, lang) {
+    let highlighted = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    try {
+      if (typeof hljs !== 'undefined') {
+        highlighted = lang && hljs.getLanguage(lang)
+          ? hljs.highlight(code, { language: lang }).value
+          : hljs.highlightAuto(code).value;
+      }
+    } catch(e) {}
+    return `<div class="code-block-wrap">
+      <pre><code class="hljs">${highlighted}</code></pre>
+      <button class="copy-btn" onclick="copyCode(this)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Kopieren
+      </button>
+    </div>`;
+  };
+
+  // Headings with anchor IDs
+  renderer.heading = function(text, level) {
+    const id = 'h-' + text.toLowerCase()
+      .replace(/[^a-z0-9\säöüß]/g, '')
+      .replace(/\s+/g, '-').replace(/-+/g, '-').substring(0, 60);
+    return `<h${level} id="${id}">${text}</h${level}>`;
+  };
+
+  marked.use({ renderer });
+  const html = marked.parse(md);
+  const el = document.getElementById('mdContent');
+  el.innerHTML = html;
+
+  buildTOC();
+  window.scrollTo(0, 0);
+  onScroll();
+}
+
+// ── TABLE OF CONTENTS ─────────────────────────────────────────────────────
+function buildTOC() {
+  const content = document.getElementById('mdContent');
+  const hs = content.querySelectorAll('h1,h2,h3,h4');
+  headings = Array.from(hs);
+
+  const toc = document.getElementById('tocList');
+  toc.innerHTML = '';
+
+  hs.forEach(h => {
+    const level = parseInt(h.tagName[1]);
+    const a = document.createElement('a');
+    a.className = 'toc-item';
+    a.setAttribute('data-level', level);
+    a.textContent = h.textContent;
+    a.href = '#' + h.id;
+    a.onclick = (e) => {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    toc.appendChild(a);
+  });
+}
+
+// ── SCROLL HANDLER ────────────────────────────────────────────────────────
+function onScroll() {
+  updateProgress();
+  updateActiveTOC();
+}
+
+function updateProgress() {
+  const el = document.documentElement;
+  const scrollTop = el.scrollTop || document.body.scrollTop;
+  const scrollHeight = el.scrollHeight - el.clientHeight;
+  const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+function updateActiveTOC() {
+  if (!headings.length) return;
+  const scrollY = window.scrollY + 80;
+  let active = headings[0];
+  for (const h of headings) {
+    if (h.getBoundingClientRect().top + window.scrollY <= scrollY) active = h;
+    else break;
+  }
+  document.querySelectorAll('.toc-item').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + active.id);
+  });
+}
+
+// ── DOC SWITCH ────────────────────────────────────────────────────────────
+function switchDoc(filename, btn) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  loadDoc(filename);
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────
+let searchTimeout;
+function onSearch(val) {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => doSearch(val), 180);
+}
+
+function doSearch(val) {
+  clearHighlights();
+  searchMatches = [];
+  searchIndex = -1;
+
+  const countEl = document.getElementById('searchCount');
+  const prevBtn = document.getElementById('searchPrev');
+  const nextBtn = document.getElementById('searchNext');
+
+  if (!val.trim()) {
+    countEl.classList.remove('visible');
+    prevBtn.classList.remove('visible');
+    nextBtn.classList.remove('visible');
+    return;
+  }
+
+  const content = document.getElementById('mdContent');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => n.parentElement.closest('.copy-btn') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+  });
+
+  const regex = new RegExp(escapeRegex(val), 'gi');
+  const textNodes = [];
+  let node;
+  while ((node = walker.nextNode())) textNodes.push(node);
+
+  textNodes.forEach(tn => {
+    const txt = tn.textContent;
+    let m;
+    const parts = [];
+    let last = 0;
+    while ((m = regex.exec(txt)) !== null) {
+      parts.push(document.createTextNode(txt.slice(last, m.index)));
+      const mark = document.createElement('mark');
+      mark.className = 'search-hl';
+      mark.textContent = m[0];
+      searchMatches.push(mark);
+      parts.push(mark);
+      last = m.index + m[0].length;
+    }
+    if (parts.length) {
+      parts.push(document.createTextNode(txt.slice(last)));
+      const frag = document.createDocumentFragment();
+      parts.forEach(p => frag.appendChild(p));
+      tn.parentNode.replaceChild(frag, tn);
+    }
+  });
+
+  if (searchMatches.length) {
+    countEl.textContent = `1/${searchMatches.length}`;
+    countEl.classList.add('visible');
+    prevBtn.classList.add('visible');
+    nextBtn.classList.add('visible');
+    navigateSearch(1);
+  } else {
+    countEl.textContent = '0 Treffer';
+    countEl.classList.add('visible');
+    prevBtn.classList.remove('visible');
+    nextBtn.classList.remove('visible');
+  }
+}
+
+function navigateSearch(dir) {
+  if (!searchMatches.length) return;
+  if (searchIndex >= 0) searchMatches[searchIndex].classList.remove('current');
+  searchIndex = (searchIndex + dir + searchMatches.length) % searchMatches.length;
+  const cur = searchMatches[searchIndex];
+  cur.classList.add('current');
+  cur.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('searchCount').textContent = `${searchIndex+1}/${searchMatches.length}`;
+}
+
+function searchKeydown(e) {
+  if (e.key === 'Enter') navigateSearch(e.shiftKey ? -1 : 1);
+  if (e.key === 'Escape') clearSearch();
+}
+
+function clearHighlights() {
+  document.querySelectorAll('mark.search-hl').forEach(m => {
+    m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+  });
+  // Normalize text nodes
+  document.getElementById('mdContent').normalize();
+  searchMatches = [];
+  searchIndex = -1;
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  clearHighlights();
+  document.getElementById('searchCount').classList.remove('visible');
+  document.getElementById('searchPrev').classList.remove('visible');
+  document.getElementById('searchNext').classList.remove('visible');
+}
+
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+// ── COPY CODE ─────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const code = btn.previousElementSibling.querySelector('code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Kopiert`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Kopieren`;
+    }, 2000);
+  });
+}
+
+// ── PDF EXPORT ────────────────────────────────────────────────────────────
+async function exportPDF() {
+  clearSearch();
+
+  // Wait for highlights to clear
+  await new Promise(r => setTimeout(r, 100));
+
+  // Wait for all images in the document to fully load
+  const imgs = Array.from(document.getElementById('mdContent').querySelectorAll('img'));
+  await Promise.all(imgs.map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise(r => { img.onload = r; img.onerror = r; });
+  }));
+
+  const content = document.getElementById('mdContent');
+  const docName = currentDoc.replace('.md', '');
+
+  const clone = content.cloneNode(true);
+  clone.querySelectorAll('img').forEach(img => {
+    img.src = new URL(img.getAttribute('src'), window.location.href).href;
+  });
+  clone.querySelectorAll('.copy-btn').forEach(b => b.remove());
+  clone.querySelectorAll('a[href^="#"]').forEach(a => {
+    const span = document.createElement('span');
+    span.style.color = '#4f6ef7';
+    span.innerHTML = a.innerHTML;
+    a.replaceWith(span);
+  });
+  clone.querySelectorAll('hr').forEach(el => {
+    const next = el.nextElementSibling;
+    if (next) next.style.pageBreakBefore = 'always';
+    el.style.display = 'none';
+  });
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'font-family: system-ui, sans-serif; color: #1a1d2e; background: #ffffff; padding: 20px; max-width: 760px;';
+
+  clone.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(h => { h.style.color = '#111'; h.style.padding = '4px 0'; });
+  clone.querySelectorAll('p,li').forEach(el => { el.style.color = '#222'; el.style.lineHeight = '1.9'; el.style.paddingTop = '5px'; el.style.paddingBottom = '5px'; });
+  clone.querySelectorAll('pre').forEach(pre => { pre.style.background = '#f4f4f4'; pre.style.padding = '16px'; pre.style.borderRadius = '6px'; pre.style.overflow = 'hidden'; pre.style.whiteSpace = 'pre-wrap'; pre.style.wordBreak = 'break-all'; });
+  clone.querySelectorAll('code:not(pre code)').forEach(c => { c.style.background = '#eef0f8'; c.style.padding = '2px 5px'; c.style.borderRadius = '3px'; c.style.fontSize = '13px'; });
+  clone.querySelectorAll('blockquote').forEach(bq => { bq.style.borderLeft = '3px solid #4f6ef7'; bq.style.paddingLeft = '16px'; bq.style.color = '#555'; bq.style.margin = '16px 0'; });
+  clone.querySelectorAll('table').forEach(t => { t.style.width = '100%'; t.style.borderCollapse = 'collapse'; t.style.fontSize = '13px'; });
+  clone.querySelectorAll('th,td').forEach(c => { c.style.border = '1px solid #c8ccd8'; c.style.padding = '8px 12px'; c.style.textAlign = 'left'; c.style.color = '#111827'; });
+  clone.querySelectorAll('th').forEach(th => { th.style.background = '#e4e8f4'; th.style.fontWeight = '700'; th.style.color = '#0f172a'; });
+  clone.querySelectorAll('tr:nth-child(even) td').forEach(td => { td.style.background = '#f8f9fc'; });
+
+  wrapper.appendChild(clone);
+
+  html2pdf().set({
+    margin: [15, 15, 15, 15],
+    filename: docName + '.pdf',
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff', logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  }).from(wrapper).save();
+}
+
+// ── PDF EXPORT v2 (Browser-Print, keine Screenshot-Methode) ───────────────
+function exportPDFPrint() {
+  clearSearch();
+
+  const content = document.getElementById('mdContent');
+  const docName = currentDoc.replace('.md', '');
+  const clone = content.cloneNode(true);
+
+  // Interne Anker-Links in Spans umwandeln (wie in exportPDF)
+  clone.querySelectorAll('a[href^="#"]').forEach(a => {
+    const span = document.createElement('span');
+    span.style.color = '#4f6ef7';
+    span.innerHTML = a.innerHTML;
+    a.replaceWith(span);
+  });
+
+  // h2 nach Bild: keinen erzwungenen Umbruch, sonst leere Seite
+  clone.querySelectorAll('h2').forEach(h2 => {
+    let prev = h2.previousElementSibling;
+    if (prev && (prev.tagName === 'IMG' || prev.querySelector('img'))) {
+      h2.style.pageBreakBefore = 'auto';
+      h2.style.breakBefore = 'auto';
+    }
+  });
+
+  // Externe Links klickbar machen im PDF
+  clone.querySelectorAll('a[href^="http"]').forEach(a => {
+    a.setAttribute('target', '_blank');
+    a.setAttribute('rel', 'noopener');
+  });
+
+  // Copy-Buttons entfernen
+  clone.querySelectorAll('.copy-btn').forEach(b => b.remove());
+
+  // Absolut-URLs für Bilder setzen
+  clone.querySelectorAll('img').forEach(img => {
+    img.src = new URL(img.getAttribute('src'), window.location.href).href;
+  });
+
+  const css = `
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #1a1d2e;
+      background: #fff;
+      padding: 0;
+    }
+
+    /* Seitenumbruch-Regeln */
+    h1, h2, h3, h4, h5, h6 { page-break-after: avoid; break-after: avoid; }
+    p, li, blockquote { page-break-inside: avoid; break-inside: avoid; }
+    table { page-break-inside: avoid; break-inside: avoid; width: 100%; border-collapse: collapse; font-size: 12px; }
+    tr { page-break-inside: avoid; break-inside: avoid; }
+    pre { page-break-inside: avoid; break-inside: avoid; }
+    img { page-break-inside: avoid; break-inside: avoid; max-width: 100%; }
+
+    h1 { font-size: 22px; font-weight: 700; color: #111; margin: 24px 0 12px; }
+    h2 { font-size: 18px; font-weight: 700; color: #111; margin: 20px 0 10px; page-break-before: always; break-before: always; }
+    h3 { font-size: 15px; font-weight: 600; color: #111; margin: 16px 0 8px; }
+    h4, h5, h6 { font-size: 13px; font-weight: 600; color: #111; margin: 12px 0 6px; }
+
+    p { margin: 8px 0; color: #222; }
+    ul, ol { margin: 8px 0 8px 24px; color: #222; }
+    li { margin: 4px 0; }
+
+    blockquote {
+      border-left: 3px solid #4f6ef7;
+      padding-left: 16px;
+      color: #555;
+      margin: 16px 0;
+    }
+
+    pre {
+      background: #f4f4f4 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      padding: 14px;
+      border-radius: 6px;
+      overflow: hidden;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-size: 12px;
+      margin: 12px 0;
+    }
+    code:not(pre code) {
+      background: #eef0f8 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    th, td { border: 1px solid #c8ccd8; padding: 7px 11px; text-align: left; color: #111827; }
+    th {
+      background: #e4e8f4 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    tr:nth-child(even) td {
+      background: #f8f9fc !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    a { color: #4f6ef7; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 20px 0; }
+
+    /* Chrome-Druckheader/-footer ausblenden */
+    @page {
+      size: A4;
+      margin: 18mm;
+      /* Leere margin-Bereiche überschreiben Datum/URL/Seitenzahl */
+      @top-left { content: ''; }
+      @top-center { content: ''; }
+      @top-right { content: ''; }
+      @bottom-left { content: ''; }
+      @bottom-center { content: ''; }
+      @bottom-right { content: ''; }
+    }
+    @media print {
+      body { padding: 0; }
+    }
+  `;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${docName}</title>
+  <style>${css}</style>
+</head>
+<body>${clone.outerHTML}</body>
+</html>`;
+
+  // Iframe statt window.open → kein "about:blank" in der Fußzeile
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;';
+  document.body.appendChild(iframe);
+
+  const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+  iDoc.open();
+  iDoc.write(html);
+  iDoc.close();
+
+  iframe.contentWindow.focus();
+  setTimeout(() => {
+    iframe.contentWindow.print();
+    setTimeout(() => document.body.removeChild(iframe), 1000);
+  }, 500);
+}
+
+// ── FRAMEWORK DOWNLOAD ────────────────────────────────────────────────────
+function downloadFramework() {
+  const a = document.createElement('a');
+  a.href = 'FRAMEWORK.md';
+  a.download = 'FRAMEWORK.md';
+  a.click();
+}
+
+// ── THEME ─────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('docs-theme', next);
+  updateThemeIcon(next);
+  updateHljsTheme(next);
+}
+
+function updateThemeIcon(theme) {
+  const icon = document.getElementById('themeIcon');
+  if (theme === 'dark') {
+    // Sun icon
+    icon.innerHTML = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
+  } else {
+    // Moon icon
+    icon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+  }
+}
+
+function updateHljsTheme(theme) {
+  const link = document.getElementById('hljs-theme');
+  link.href = theme === 'dark'
+    ? 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css'
+    : 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css';
+}
+</script>
+</body>
+</html>
