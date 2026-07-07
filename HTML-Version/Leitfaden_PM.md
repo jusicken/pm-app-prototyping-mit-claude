@@ -1,5 +1,5 @@
 # App-Prototyping mit Claude: Leitfaden für Produktmanager
-Version 1.0 | 28.06.2026
+Version 1.1 | 07.07.2026
 
 *Voraussetzung: Die Einrichtungsanleitung (separates Dokument) wurde einmalig durchgeführt. Claude ist installiert, Vercel und ggf. Supabase sind verbunden.*
 
@@ -8,7 +8,7 @@ Version 1.0 | 28.06.2026
 
 ## Inhaltsverzeichnis
 
-- [Was dieses Framework tut](#was-dieses-framework-tut)
+- [Was dieser Leitfaden tut](#was-dieser-leitfaden-tut)
 - [Übersicht: Die 5 Phasen](#übersicht-die-5-phasen)
 - [Schritt 0: Projektordner einrichten](#schritt-0-projektordner-einrichten)
 - [Wie Claude den Projektstand speichert](#wie-claude-den-projektstand-speichert)
@@ -16,7 +16,6 @@ Version 1.0 | 28.06.2026
 - [Phase 1: Spezifikation](#phase-1-spezifikation)
 - [Phase 2: Initialisierung](#phase-2-initialisierung)
 - [Phase 3: Konstruktion](#phase-3-konstruktion)
-- [Gate 3b: Erweiterungsrunde (optional)](#gate-3b-erweiterungsrunde-optional)
 - [Phase 4: Validierung](#phase-4-validierung)
 - [Phase 5: Deployment](#phase-5-deployment)
 - [Nach dem Deployment: App weiterentwickeln](#nach-dem-deployment-app-weiterentwickeln)
@@ -27,13 +26,15 @@ Version 1.0 | 28.06.2026
 
 ---
 
-## Was dieses Framework tut
+## Was dieser Leitfaden tut
 
-Dieses Framework führt dich von einer App-Idee bis zu einer öffentlich erreichbaren URL, ohne Programmierkenntnisse. Du beschreibst, was die App tun soll. Claude baut es. Du prüfst, ob es funktioniert. Am Ende hast du einen Prototyp, den du echten Nutzern oder Stakeholdern zeigen kannst.
+Dieser Leitfaden führt dich von einer App-Idee bis zu einer öffentlich erreichbaren URL, ohne Programmierkenntnisse. Du beschreibst, was die App tun soll. Claude baut es. Du prüfst, ob es funktioniert. Am Ende hast du einen Prototyp, den du echten Nutzern oder Stakeholdern zeigen kannst.
 
 **Was du brauchst:**
 - Claude Desktop App (installiert und eingerichtet, siehe Einrichtungsanleitung)
 - Eine App-Idee mit einer konkreten Funktion
+
+Der Leitfaden führt dich Schritt für Schritt durch fünf Phasen mit Gates (Kontrollpunkten) dazwischen.
 
 **Was am Ende herauskommt:** Eine öffentlich erreichbare Web-App-URL: navigierbar, funktionsfähig, live.
 
@@ -41,21 +42,6 @@ Dieses Framework führt dich von einer App-Idee bis zu einer öffentlich erreich
 ---
 
 ## Übersicht: Die 5 Phasen
-
-```
-Schritt 0: Session-Setup    → Du richtest den Projektordner ein
-Phase 1: Spezifikation      → Du beschreibst deine App-Idee vollständig
-          ↓ Gate 1
-Phase 2: Initialisierung    → Claude richtet das Projekt ein
-          ↓ Gate 2
-Phase 3: Konstruktion       → Claude baut die Features
-          ↓ Gate 3
-         [Gate 3b: Erweiterungsrunde (optional)]
-Phase 4: Validierung        → Du testest alles im Browser
-          ↓ Gate 4
-Phase 5: Deployment         → Claude deployt auf Vercel
-          ↓ Gate 5 → Öffentliche URL 
-```
 
 | Schritt | Was passiert | Wer handelt |
 |---|---|---|
@@ -92,7 +78,11 @@ Falls Claude aus einem anderen Ordner gestartet wurde: Wähle oben den korrekten
 **Schritt 0.4:** Gib Claude die `FRAMEWORK.md`. Zwei Möglichkeiten:
 
 - **Option A (Empfohlen):** Ziehe die Datei `FRAMEWORK.md` aus dem Projektordner direkt in den Chat-Bereich und sende sie. Kein zusätzlicher Text ist nötig. Claude liest das Dokument und beginnt automatisch mit Phase 1.
-- **Option B:** Schreibe in das Chat-Eingabefeld: *„Lies FRAMEWORK.md"* und sende die Nachricht ab. *(Voraussetzung: FRAMEWORK.md liegt bereits in deinem Projektordner; Schritt 0.2 muss abgeschlossen sein.)*
+- **Option B:** Schreibe in das Chat-Eingabefeld:
+  ```
+  Lies FRAMEWORK.md
+  ```
+  und sende die Nachricht ab. *(Voraussetzung: FRAMEWORK.md liegt bereits in deinem Projektordner; Schritt 0.2 muss abgeschlossen sein.)*
 
 Claude liest das Dokument und führt dich direkt zu Phase 1. Du musst nichts weiter eingeben.
 
@@ -117,11 +107,12 @@ Claude verwaltet außerdem `FRAMEWORK.md`, eine kompakte Version des Prozessmode
 
 Wenn du eine Session unterbrechen willst, ohne das aktuelle Gate abgeschlossen zu haben, sage zu Claude:
 
-*"Speichere den aktuellen Zwischenstand. Ich mache eine Pause."*
+```
+Speichere den aktuellen Zwischenstand. Ich mache eine Pause.
+```
 
----
 
-Claude:
+Claude antwortet automatisch — du musst nach dem Senden nichts tun. Claude:
 1. Speichert deinen Fortschritt in `_workspace/project_state.md`, auch ohne Gate-Abschluss
 2. Fragt dich, ob der laufende Entwicklungsserver gestoppt werden soll: *„Der Server läuft noch auf Port [X]. Soll ich ihn stoppen? Beim nächsten Start wird er automatisch neu gestartet."* 
 Du kannst hier mit *"Ja, stoppen"* antworten.
@@ -144,8 +135,13 @@ Du kannst Claude Bilder, Dokumente und Dateien mitgeben: als Kontext für die Ap
 
 **Persistente Dokumente** (PRD, Excel-Tabelle, Nutzerforschungs-Notizen, Brand-Guide):
 - Lege die Datei in den `_workspace/inputs/`-Ordner deines Projekts (öffne den Projektordner auf deinem Computer und lege die Datei dort ab).
-- Sage Claude dann: *"Schau dir die Datei [Dateiname] in `_workspace/inputs/` an und beziehe sie ein."*
+- Sage Claude dann:
+  ```
+  Schau dir die Datei [Dateiname] in _workspace/inputs/ an und beziehe sie ein.
+  ```
 - Diese Dateien bleiben dauerhaft verfügbar, auch nach Session-Neustarts.
+
+*Hinweis: Der `_workspace/`-Ordner wird von Claude automatisch in Phase 2 angelegt — bis dahin existiert er noch nicht in deinem Projektordner.*
 
 *(Tipp: Auch Bilder können in `_workspace/inputs/` abgelegt werden, wenn du sie als Design-Referenz über mehrere Features hinweg verwenden willst. Sage Claude dann den Dateinamen, statt das Bild jedes Mal neu in den Chat zu ziehen.)*
 
@@ -175,11 +171,14 @@ Bestätige deine Wahl. Claude trägt sie ins Spec ein.
 - ☐ Das Spec enthält eine User Story ("Als [Nutzer] möchte ich [Aktion], damit [Ergebnis]")
 - ☐ Das Spec enthält mindestens 2 Akzeptanzkriterien
 - ☐ Das Spec enthält eine Scope-Grenze ("Die App tut NICHT: [...]")
-- ☐ Die Datenbankfrage ist beantwortet und von mir bestätigt
+- ☐ Die Datenbankfrage ist beantwortet und von dir bestätigt
 - ☐ Die visuelle Präferenz ist festgelegt ("Standarddesign" oder wie von dir beschrieben)
 
-Alle fünf erfüllt → Sage: *"Gate 1 ist erfüllt. Speichere das Spec und den Projektstand. Dann weiter zu Phase 2."*  
-Claude sichert alles in `_workspace/project_state.md`. Dann weiter zu Phase 2.
+Alle fünf erfüllt → Sage:
+```
+Gate 1 ist erfüllt. Speichere das Spec und den Projektstand. Dann weiter zu Phase 2.
+```
+Dann weiter zu Phase 2.
 
 Nicht alle erfüllt → zurück zu Schritt 2.
 
@@ -190,7 +189,7 @@ Nicht alle erfüllt → zurück zu Schritt 2.
 **Ziel:** Lauffähiges Projekt im Browser erreichbar, `_workspace/` eingerichtet, Berechtigungen konfiguriert.
 
 **Schritt 1:** Claude richtet das Projekt ein:
-- richtet die Berechtigungskonfiguration ein (damit du nicht bei jeder Aktion gefragt wirst)
+- richtet die Berechtigungskonfiguration ein (damit du nicht bei jeder Aktion von Claude nach Erlaubnis gefragt wirst)
 - erstellt das Next.js-Projekt (die "Basis" deiner App, keine Funktionen oder Features)
 - verbindet Supabase für die Datenbank, wenn nötig, und fragt dich vorher um Erlaubnis
 - legt Ordner und Dateien an
@@ -207,8 +206,11 @@ Diese Adresse ist nur für dich erreichbar, noch nicht im Internet. Kopiere die 
 - ☐ Claude hat bestätigt, dass `_workspace/` angelegt ist
 - ☐ Claude hat bestätigt, dass die Berechtigungskonfiguration eingerichtet ist
 
-Alle drei erfüllt → Sage: *"Gate 2 ist erfüllt. Speichere den Projektstand. Dann weiter zu Phase 3."*  
-Claude aktualisiert `_workspace/project_state.md`. Dann weiter zu Phase 3.
+Alle drei erfüllt → Sage:
+```
+Gate 2 ist erfüllt. Speichere den Projektstand. Dann weiter zu Phase 3.
+```
+Dann weiter zu Phase 3.
 
 Nicht erfüllt → Siehe Abschnitt Fehlereskalationspfad, [Stufe 1](#stufe-1).
 
@@ -217,10 +219,10 @@ Nicht erfüllt → Siehe Abschnitt Fehlereskalationspfad, [Stufe 1](#stufe-1).
 
 **Ziel:** Alle Features aus dem Spec implementiert und im Browser testbar. Visueller Stil aus Phase 1 durchgehend angewandt.
 
-**Framing:** In Phase 2 hast du ein leeres Projekt gestartet. Phase 3 fügt die echten Features hinzu, bei großem Scope, eines nach dem anderen.
+**Framing:** In Phase 2 hast du ein leeres Projekt gestartet. Phase 3 fügt die echten Features hinzu — je nach Umfang direkt alle auf einmal oder eines nach dem anderen. Claude liest dein Spec und schlägt das nächste Feature vor; du bestätigst oder wählst ein anderes. Du musst keine Feature-Liste manuell eintippen.
 
 
-**Anfragen während Phase 3, die über den Spec-Umfang hinausgehen:** Füge während dieser Phase keine Features hinzu, die nicht im Spec stehen. Claude weist diese Anfragen ab und notiert sie für die Erweiterungsrunde (Gate 3b). Die Notiz wird in `_workspace/project_state.md` unter "Notierte Erweiterungsideen" gespeichert.
+**Anfragen während Phase 3, die über den Spec-Umfang hinausgehen:** Füge während dieser Phase keine Features hinzu, die nicht im Spec stehen. Claude weist diese Anfragen ab und merkt sie sich für die Erweiterungsrunde (Gate 3b).
 
 **Schritt 1:** Wähle das erste Feature (empfohlen: das Kernfeature aus der User Story).
 
@@ -228,26 +230,29 @@ Nicht erfüllt → Siehe Abschnitt Fehlereskalationspfad, [Stufe 1](#stufe-1).
 
 **Schritt 3:** Teste das Feature im Browser. Funktioniert es? Weiter mit dem nächsten Feature. Funktioniert es nicht? → Fehlereskalationspfad, [Stufe 1](#stufe-1).
 
-**Schritt 4:** Sage Claude welches Feature du als nächstes umgesetzt haben möchtest, oder bestätige das Feature, das Claude aus dem Spec vorschlägt. Claude liest automatisch dein Spec und implementiert das Feature.
+**Schritt 4:** Sage Claude, welches Feature du als nächstes umgesetzt haben möchtest, oder bestätige das Feature, das Claude aus dem Spec vorschlägt. Claude implementiert das Feature.
 
 Wiederhole Schritte 2–4 bis alle Spec-Features implementiert sind.
 
 **Regression** Wenn ein Feature, das zuvor funktioniert hat, nach der Implementierung eines neuen Features nicht mehr funktioniert: Gehe zu Fehlereskalationspfad [Stufe 1](#stufe-1).
 
 
-*Hinweis: Claude implementiert Features überwiegend einzeln, manchmal mehrere gleichzeitig, wenn sie technisch zusammenhängen. Teste nach jeder Implementierungseinheit im Browser.*
-
-**Context Window und proaktive Session-Pausen:** Bei vielen Features oder langen Sessions kann das Context Window von Claude voll werden. Deine Anfragen verbrauchen mehr Ressourcen bei Claude und das Risiko für ungewolltes Verhalten seitens Claude steigt. Claude weist dich dann aktiv darauf hin und empfiehlt einen Session-Neustart. Du kannst auch jederzeit proaktiv neu starten: Speichere den aktuellen Zwischenstand (Trigger-Phrase: „Speichere den aktuellen Zwischenstand. Ich mache eine Pause.") und starte anschließend eine neue Session mit ST-0.
+**Kontext-Window und proaktive Session-Pausen:** Bei vielen Features oder langen Sessions kann das Kontext-Window von Claude voll werden. Deine Anfragen verbrauchen mehr Ressourcen bei Claude und das Risiko für ungewolltes Verhalten seitens Claude steigt. Claude weist dich dann aktiv darauf hin und empfiehlt einen Session-Neustart. Du kannst auch jederzeit proaktiv neu starten → sage Claude:
+```
+Speichere den aktuellen Zwischenstand. Ich mache eine Pause.
+```
+und starte dann eine neue Session mit ST-0 (Anhang B).
 
 **Warnung: Kontext-Drift-Symptome** Wenn Claude anfängt, sich zu widersprechen oder Entscheidungen zu treffen, die dem Spec widersprechen: → Direkt Fehlereskalationspfad [Stufe 3](#stufe-3).
 
 **Gate 3: Prüfe vor Phase 4**
 - ☐ Alle Features aus dem Spec sind im Browser erreichbar
 - ☐ Jedes Feature liefert das in den Akzeptanzkriterien beschriebene Ergebnis
-- ☐ Scope-Prüfung: Sage Claude: *"Prüfe ob du seit dem letzten Gate etwas implementiert hast, das nicht im Spec steht. Falls ja, liste es auf."*
 
-Alle drei erfüllt → Sage: *"Gate 3 ist erfüllt. Speichere den Projektstand."*  
-Claude aktualisiert `_workspace/project_state.md`. 
+Beide erfüllt → Sage:
+```
+Gate 3 ist erfüllt. Speichere den Projektstand.
+```
 
 ---
 
@@ -255,20 +260,31 @@ Claude aktualisiert `_workspace/project_state.md`.
 
 **Wann:** Nach Gate-3-Bestätigung, bevor Phase 4 beginnt.
 
+*Nach Gate 3 fragt Claude immer nach Erweiterungswünschen — das ist keine Pflicht-Runde. „Keine Erweiterungen" genügt; Claude geht dann direkt zu Phase 4 über.*
+
 **Zweck:** Möchtest du nach Abschluss aller Spec-Features noch etwas hinzufügen? Die Erweiterungsrunde hat einen eigenen Bereich in der Projektdokumentation: deine ursprüngliche Spec bleibt der Referenzpunkt, Extension-Features werden separat notiert.
 
 **Ablauf:**
-- Sage nach Gate-3-Bestätigung: *"Ich möchte noch [Feature] hinzufügen"* oder äquivalent.
-- Falls du keine Erweiterungen möchtest: sage *"Kein Erweiterungswunsch. Weiter zu Phase 4."*
+- Sage nach Gate-3-Bestätigung:
+  ```
+  Ich möchte noch [Feature] hinzufügen.
+  ```
+- Falls du keine Erweiterungen möchtest → sage:
+  ```
+  Kein Erweiterungswunsch. Weiter zu Phase 4.
+  ```
 - Claude fragt gezielt nach, was es noch wissen muss. Das ist kein Template, sondern ein natürlicher Dialog.
 - Claude implementiert das Feature und erklärt dir den Browsertest.
 - Teste im Browser. Funktioniert es nicht? → Fehlereskalationspfad [Stufe 1](#stufe-1).
 - Mehrere Erweiterungen möglich: Schritt wiederholen.
 
-**Abschluss:** Sage: *"Gate 3b ist erfüllt. Speichere den Projektstand."*  
-Claude speichert den Zwischenstand. Dann kommt Phase 4.
+**Abschluss** → Sage:
+```
+Gate 3b ist erfüllt. Speichere den Projektstand.
+```
+Dann kommt Phase 4.
 
-*Hinweis: Du entscheidest über Umfang und Anzahl der Erweiterungen. Claude trägt die technische Ausführungsverantwortung und weist dich hin, wenn das Context Window knapp wird, blockiert aber keine Features.*
+*Hinweis: Du entscheidest über Umfang und Anzahl der Erweiterungen. Claude trägt die technische Ausführungsverantwortung und weist dich hin, wenn das Kontext-Window knapp wird, blockiert aber keine Features.*
 
 ---
 
@@ -291,11 +307,14 @@ Claude speichert den Zwischenstand. Dann kommt Phase 4.
 - ☐ Alle Akzeptanzkriterien erfüllt ODER Abweichungen schriftlich dokumentiert
 - ☐ Für jede Abweichung: Ist sie ein Flow-Blocker? Falls ja → Gate nicht erfüllt, zurück zu Fehlereskalation
 
-Alle erfüllt → Sage: *"Gate 4 ist erfüllt. Speichere den Projektstand. Dann weiter zu Phase 5."*  
-Claude aktualisiert den Zwischenstand. Weiter zu Phase 5.
+Alle erfüllt → Sage:
+```
+Gate 4 ist erfüllt. Speichere den Projektstand. Dann weiter zu Phase 5.
+```
+Weiter zu Phase 5.
 
 ---
----
+
 ## Phase 5: Deployment
 
 **Ziel:** Öffentlich erreichbare URL: navigierbar, kernfunktional, auf einem anderen Gerät zugänglich.
@@ -304,19 +323,33 @@ Claude aktualisiert den Zwischenstand. Weiter zu Phase 5.
 Claude initiiert den Vercel-Login selbstständig. Es öffnet ein Fenster in deinem Browser. Das ist der Vercel-Login, diesen musst du im Browser erlauben. 
 Sollte Claude nicht automatisch fortfahren, frage, ob es funktioniert hat.
 
-*Falls Claude dich auffordert, den Login-Befehl selbst im Terminal auszuführen: Sage „mach du es". Claude übernimmt es dann selbst.*
+*Falls Claude dich auffordert, den Login-Befehl selbst im Terminal (Befehlszeile/Konsole deines Geräts) auszuführen, sage einfach:*
+```
+mach du es.
+```
+*Claude übernimmt es dann selbst.*
 
-**Schritt 2: Vercel-Verbindungstest.** Sage Claude: *"Liste meine Vercel-Projekte auf."* Claude gibt eine Liste zurück. 
+**Schritt 2: Vercel-Verbindungstest.** Sage Claude:
+```
+Liste meine Vercel-Projekte auf.
+```
+Claude gibt eine Liste zurück oder informiert dich, dass du noch keine Vercel-Projekte hast.
 Wenn eine Fehlermeldung erscheint: richte die initiale Verbindung zwischen Claude und Vercel ein. Du kannst die Einrichtungsanleitung (separates Dokument) dafür verwenden.
 
-**Schritt 3:** Sage Claude: *„Deploye die App auf Vercel."* Claude übernimmt alle weiteren Schritte und gibt dir am Ende die öffentliche URL. Das dauert typischerweise 1–3 Minuten. Wenn beim Deployment etwas schiefläuft, liest Claude die Deployment-Logs selbstständig und korrigiert. Du erhältst Rückmeldung von Claude, sobald es fertig ist.
+**Schritt 3** → Sage Claude:
+```
+Deploye die App auf Vercel.
+```
+Claude übernimmt alle weiteren Schritte und gibt dir am Ende die öffentliche URL. Das dauert typischerweise 1–3 Minuten. Wenn beim Deployment etwas schiefläuft, liest Claude die Deployment-Logs selbstständig und korrigiert. Du erhältst Rückmeldung von Claude, sobald es fertig ist.
 
 **Schritt 4:** Öffne die URL und prüfe, ob die App geladen wird.
 
 **Schritt 5:** Führe den User-Story-Flow einmal über die öffentliche URL durch.
 
-**Wenn das Deployment länger als 10 Minuten dauert und keine Rückmeldung kommt, sage:**  
-*"Prüfe ob das letzte Vercel-Deployment erfolgreich war oder noch läuft."*
+**Wenn das Deployment länger als 10 Minuten dauert und keine Rückmeldung kommt, sage:**
+```
+Prüfe ob das letzte Vercel-Deployment erfolgreich war oder noch läuft.
+```
 
 ---
 
@@ -325,7 +358,10 @@ Wenn eine Fehlermeldung erscheint: richte die initiale Verbindung zwischen Claud
 - ☐ Alle User-Story-Flows funktionieren über die öffentliche URL
 - ☐ URL auf einem anderen Gerät oder Browser getestet
 
-Alle drei erfüllt → Sage: *"Gate 5 ist erfüllt. Speichere die finale URL und den Projektstand."*  
+Alle drei erfüllt → Sage:
+```
+Gate 5 ist erfüllt. Speichere die finale URL und den Projektstand.
+```
 Claude schreibt die URL in deinen Projektordner und kennt sie von nun an.
 
 **Prototyp fertig.**
@@ -341,7 +377,7 @@ Wenn du nach Gate 5 Änderungen oder neue Features hinzufügen möchtest, gehst 
 **Schritt 1:** Starte eine neue Session mit ST-0:
 ```
 Lies _workspace/FRAMEWORK.md und _workspace/project_state.md.
-Gib mir eine kurze Zusammenfassung: Welche Phase sind wir in, was ist das letzte 
+Gib mir eine kurze Zusammenfassung: In welcher Phase sind wir, was ist das letzte 
 abgeschlossene Gate, was ist der nächste Schritt? Dann führe mich weiter.
 ```
 
@@ -351,9 +387,13 @@ abgeschlossene Gate, was ist der nächste Schritt? Dann führe mich weiter.
 
 **Schritt 4:** Claude implementiert und deployt automatisch neu, oder fragt dich, ob es jetzt deployen soll. Deployment ist nötig, damit Änderungen auf deiner öffentlichen URL sichtbar sind, nicht nur auf deinem Computer.
 
-*Diese Änderungen laufen im Post-Deployment-Modus, außerhalb der formalen Gate-Struktur der Phasen 1–5, aber technisch sicher und mit automatischem Redeployment.*
+*Diese Änderungen laufen im Post-Deployment-Modus, außerhalb der formalen Gate-Struktur der Phasen 1–5.*
 
-*Hinweis: Falls Claude dich je auffordert, etwas im Terminal einzugeben oder einen Befehl selbst auszuführen: Sage einfach „mach du es". Claude führt es dann selbst aus. Das gilt für alle Phasen und den Post-Deployment-Modus.*
+*Hinweis: Falls Claude dich je auffordert, etwas im Terminal (Befehlszeile/Konsole deines Geräts) einzugeben oder einen Befehl selbst auszuführen, sage einfach:*
+```
+mach du es.
+```
+*Claude führt es dann selbst aus. Das gilt für alle Phasen und den Post-Deployment-Modus.*
 
 ---
 
@@ -363,9 +403,18 @@ Wenn etwas nicht funktioniert, gehe die Stufen der Reihe nach durch.
 
 *Wichtig: Claude bemerkt technische Fehler (Build-Fehler, Deployment-Fehler) in der Regel selbst und korrigiert sie ohne deinen Eingriff. Der Fehlereskalationspfad ist für Situationen, in denen du im Browser etwas siehst, das nicht stimmt, oder in denen Claude in einer Phase feststeckt.*
 
-**Fallback-Phrase bei falscher Delegation:** Falls Claude dich je auffordert, einen Befehl im Terminal einzugeben oder etwas selbst auszuführen, das außerhalb deines Browser-Bereichs liegt: Sage einfach *„mach du es"*. Claude führt es dann selbst aus.
+**Fallback-Phrase bei falscher Delegation:** Falls Claude dich je auffordert, einen Befehl im Terminal (Befehlszeile/Konsole deines Geräts) einzugeben oder etwas selbst auszuführen, das außerhalb deines Browser-Bereichs liegt, sage einfach:
+```
+mach du es.
+```
+Claude führt es dann selbst aus.
 
-**Schnellcheck vor Stufe 1:** Wenn die Seite nicht lädt, sage zunächst: *„Starte den Server neu."* Claude startet ihn neu. Hilft das nicht, weiter mit Stufe 1.
+**Schnellcheck vor Stufe 1:** Wenn die Seite nicht lädt, sage zunächst: 
+```
+Starte den Server neu.
+```
+
+Claude startet ihn neu. Hilft das nicht, weiter mit Stufe 1.
 
 <a id="stufe-1"></a>
 
@@ -411,8 +460,11 @@ Danach: Gate dieser Phase erneut prüfen.
 
 **Stufe 3: Neue Session (bei Kontext-Drift)**
 *Hinweis: Stufe 3 ist unabhängig von Stufe 2. Sie ist keine Folge-Eskalation nach 2b, sondern wird ausschließlich bei Kontext-Drift genutzt.*
-
-Starte eine neue Konversation. Sage als erstes:
+Sage als erstes:
+```
+Speichere den aktuellen Zwischenstand. Ich mache eine Pause.
+```
+Starte eine neue Konversation. Sage jetzt:
 ```
 Lies _workspace/FRAMEWORK.md und _workspace/project_state.md.
 Das ist eine Session-Neustart-Situation.
@@ -432,19 +484,41 @@ Starte neu mit Phase 1 und beschreibe deine App-Idee in natürlicher Sprache.
 **ST-0: Session-Start**
 ```
 Lies _workspace/FRAMEWORK.md und _workspace/project_state.md.
-Gib mir eine kurze Zusammenfassung: Welche Phase sind wir in, was ist das letzte 
+Gib mir eine kurze Zusammenfassung: In welcher Phase sind wir, was ist das letzte 
 abgeschlossene Gate, was ist der nächste Schritt? Dann führe mich weiter.
 ```
 
 
 **Gate-Trigger-Phrasen**
-- Gate 1: *„Gate 1 ist erfüllt. Speichere das Spec und den Projektstand. Dann weiter zu Phase 2."*
-- Gate 2: *„Gate 2 ist erfüllt. Speichere den Projektstand. Dann weiter zu Phase 3."*
-- Gate 3: *„Gate 3 ist erfüllt. Speichere den Projektstand."*
-- Gate 3b: *„Gate 3b ist erfüllt. Speichere den Projektstand."*
-- Gate 4: *„Gate 4 ist erfüllt. Speichere den Projektstand. Dann weiter zu Phase 5."*
-- Gate 5: *„Gate 5 ist erfüllt. Speichere die finale URL und den Projektstand."*
-- Zwischenspeichern: *„Speichere den aktuellen Zwischenstand. Ich mache eine Pause."*
+
+Gate 1:
+```
+Gate 1 ist erfüllt. Speichere das Spec und den Projektstand. Dann weiter zu Phase 2.
+```
+Gate 2:
+```
+Gate 2 ist erfüllt. Speichere den Projektstand. Dann weiter zu Phase 3.
+```
+Gate 3:
+```
+Gate 3 ist erfüllt. Speichere den Projektstand.
+```
+Gate 3b:
+```
+Gate 3b ist erfüllt. Speichere den Projektstand.
+```
+Gate 4:
+```
+Gate 4 ist erfüllt. Speichere den Projektstand. Dann weiter zu Phase 5.
+```
+Gate 5:
+```
+Gate 5 ist erfüllt. Speichere die finale URL und den Projektstand.
+```
+Zwischenspeichern:
+```
+Speichere den aktuellen Zwischenstand. Ich mache eine Pause.
+```
 
 
 <a id="template-4"></a>
@@ -475,8 +549,8 @@ Ist sie ein Flow-Blocker? Ja → Gate 4 nicht erfüllt, Fehlereskalation Stufe 1
 |---|---|
 | **Agent / Claude** | KI-System, das Aufgaben selbstständig in mehreren Schritten ausführt, ohne dass du jeden Schritt einzeln anweisen musst. Claude liest auch Fehler-Logs und korrigiert technische Fehler selbst. |
 | **Commit** | Speicherpunkt im Projektcode mit Kommentar. Claude macht Commits automatisch. |
-| **Context Window** | Das Arbeitsgedächtnis von Claude innerhalb einer Session. Wenn es voll wird, kann Claude frühere Entscheidungen vergessen oder sich widersprechen; das Ergebnis ist Kontext-Drift. Reaktion: Fehlereskalationspfad [Stufe 3](#stufe-3) (Session-Neustart mit ST-0). |
-| **Kontext-Drift** | Wenn Claude in einer langen Session anfängt, frühere Entscheidungen zu ignorieren, sich zu widersprechen oder Features neu zu erklären, die bereits funktionieren. Ursache: Context Window voll. Reaktion: Direkt Fehlereskalationspfad [Stufe 3](#stufe-3) (Session-Neustart mit ST-0). |
+| **Kontext-Window** | Das Arbeitsgedächtnis von Claude innerhalb einer Session. Wenn es voll wird, kann Claude frühere Entscheidungen vergessen oder sich widersprechen; das Ergebnis ist Kontext-Drift. Reaktion: Fehlereskalationspfad [Stufe 3](#stufe-3) (Session-Neustart mit ST-0). |
+| **Kontext-Drift** | Wenn Claude in einer langen Session anfängt, frühere Entscheidungen zu ignorieren, sich zu widersprechen oder Features neu zu erklären, die bereits funktionieren. Ursache: Kontext-Window voll. Reaktion: Direkt Fehlereskalationspfad [Stufe 3](#stufe-3) (Session-Neustart mit ST-0). |
 | **Deployment** | Veröffentlichung der App auf Vercel. Die App ist danach öffentlich im Internet unter einer festen URL erreichbar. |
 | **FRAMEWORK.md** | Eine Datei, die Claude als Prozessmodell und interne Arbeitsanweisung dient. Du gibst sie Claude in Session 1 (in den Chat ziehen). Claude kopiert sie in Phase 2 nach `_workspace/FRAMEWORK.md` und liest sie danach am Anfang jeder Session automatisch. |
 | **Gate** | Binärer Kontrollpunkt zwischen zwei Phasen. Erfüllt oder nicht erfüllt, kein "teilweise". Verhindert, dass Fehler einer Phase in die nächste mitgeschleppt werden. |
