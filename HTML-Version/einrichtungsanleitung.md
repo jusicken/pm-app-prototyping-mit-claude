@@ -111,6 +111,16 @@ Claude Code gibt eine Projektliste aus — anfangs leer, das ist in Ordnung. Ent
 
 ---
 
+## Schritt 4: Node.js installieren
+
+*Node.js wird benötigt, damit du deine App bei Bedarf lokal auf deinem Rechner ausführen kannst.*
+
+**4.1** Öffne einen Browser und gehe zu **[nodejs.org](https://nodejs.org)**.
+
+**4.2** Lade die **LTS-Version** herunter und installiere sie mit den Standardeinstellungen.
+
+---
+
 ## Einrichtung abgeschlossen
 
 Du brauchst diese Anleitung nicht mehr. Ab jetzt startest du jeden neuen Prototyp mit **Schritt 0 des Framework-Dokuments** (Projektordner einrichten) — und danach direkt mit Phase 1.
