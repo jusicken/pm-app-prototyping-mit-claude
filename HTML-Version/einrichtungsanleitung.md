@@ -1,5 +1,5 @@
 # Einrichtungsanleitung für "App-Prototyping mit Claude: Leitfaden für Produktmanager"
-Version 1.0 | 28.06.2026
+Version 1.1 | 20.07.2026
 
 *Diese Anleitung führst du einmalig durch, bevor du deinen ersten Prototyp mit dem Framework baust. Ab dem zweiten Projekt startest du direkt mit Schritt 0 des Framework-Dokuments.*
 
